@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baby Shower de Matías</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --brown-deep: #5C4333;
+      --brown: #7B5E49;
+      --brown-warm: #96785E;
+      --tan: #C4A67A;
+      --tan-light: #D9C9A8;
+      --beige: #E8DECE;
+      --cream: #F5F0E8;
+      --cream-light: #FAF7F2;
+      --white: #FFFFFF;
+      --blue-soft: #8AABBF;
+      --blue-accent: #6D95AD;
+      --blue-light: #D4E3EC;
+      --charcoal: #3A322C;
+      --charcoal-light: #7A6F65;
+      --red-soft: #B87070;
+      --green-soft: #7A9E6D;
+      --shadow-sm: 0 2px 6px rgba(92,67,51,0.06);
+      --shadow-md: 0 6px 20px rgba(92,67,51,0.10);
+      --shadow-lg: 0 12px 36px rgba(92,67,51,0.12);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--cream-light);
+      color: var(--charcoal);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HERO ───────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+    }
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      min-height: 520px;
+    }
+    .hero-text {
+      padding: 60px 48px 60px 40px;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-label {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue-accent);
+      background: var(--blue-light);
+      padding: 5px 14px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      color: var(--brown-deep);
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    .hero h1 em { font-style: italic; color: var(--brown); }
+    .hero-divider {
+      width: 48px;
+      height: 2px;
+      background: var(--tan);
+      margin-bottom: 20px;
+    }
+    .hero .welcome-msg {
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: var(--charcoal-light);
+      max-width: 440px;
+    }
+
+    .hero-photo {
+      position: relative;
+      height: 100%;
+      min-height: 400px;
+      overflow: hidden;
+    }
+    .hero-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+    .hero-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, var(--beige) 0%, transparent 25%);
+      pointer-events: none;
+    }
+
+    /* ── SECTION HEADER ─────────────────────── */
+    .section-header {
+      text-align: center;
+      padding: 48px 24px 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 500;
+      color: var(--brown-deep);
+      margin-bottom: 6px;
+    }
+    .section-header p { font-size: 0.85rem; color: var(--charcoal-light); }
+    .section-header .line { width: 40px; height: 2px; background: var(--tan); margin: 12px auto 0; }
+
+    /* ── GIFT GRID ──────────────────────────── */
+    .gifts-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .gifts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 24px;
+    }
+    .gift-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(196,166,122,0.12);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      animation: fadeUp 0.5s ease both;
+    }
+    .gift-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .gift-card.reserved { opacity: 0.65; }
+    .gift-card.reserved .gift-img-wrap::after {
+      content: 'Apartado';
+      position: absolute;
+      top: 12px; right: 12px;
+      background: var(--brown);
+      color: var(--white);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 4px;
+    }
+    .gift-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--cream);
+      overflow: hidden;
+    }
+    .gift-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+    .gift-card:hover .gift-img-wrap img { transform: scale(1.03); }
+    .gift-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--tan-light);
+    }
+    .gift-img-placeholder svg { width: 44px; height: 44px; opacity: 0.5; }
+    .gift-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+    .gift-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 500; margin-bottom: 6px; color: var(--brown-deep); }
+    .gift-desc { font-size: 0.82rem; color: var(--charcoal-light); line-height: 1.55; margin-bottom: 14px; flex: 1; }
+    .gift-price { font-size: 0.78rem; color: var(--tan); font-weight: 600; margin-bottom: 14px; letter-spacing: 0.03em; }
+    .gift-footer { display: flex; gap: 8px; align-items: center; }
+
+    /* ── BUTTONS ─────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 18px; border: none; border-radius: 5px;
+      font-family: var(--font-body); font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.03em; cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+    }
+    .btn-primary { background: var(--blue-accent); color: var(--white); }
+    .btn-primary:hover { background: #5A8298; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--beige); color: var(--brown-warm); }
+    .btn-outline:hover { border-color: var(--tan); background: var(--cream); }
+    .btn-warm { background: var(--brown); color: var(--white); }
+    .btn-warm:hover { background: var(--brown-deep); }
+    .btn-danger { background: transparent; border: 1.5px solid var(--red-soft); color: var(--red-soft); }
+    .btn-danger:hover { background: var(--red-soft); color: var(--white); }
+    .btn-sm { padding: 7px 12px; font-size: 0.72rem; }
+    .status-badge { display: inline-block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 12px; border-radius: 4px; }
+    .status-reserved { background: #F0E2D8; color: var(--brown); }
+
+    /* ── EMPTY STATE ─────────────────────────── */
+    .empty-state { text-align: center; padding: 80px 24px; color: var(--charcoal-light); }
+    .empty-state svg { width: 56px; height: 56px; opacity: 0.25; margin-bottom: 16px; color: var(--tan); }
+    .empty-state p { font-size: 0.95rem; }
+
+    /* ── MODAL ────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(58,50,44,0.4);
+      backdrop-filter: blur(4px); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      opacity: 0; visibility: hidden; transition: all 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--white); border-radius: var(--radius); padding: 32px;
+      width: 100%; max-width: 440px; box-shadow: var(--shadow-lg);
+      transform: translateY(16px); transition: transform 0.3s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.active .modal { transform: translateY(0); }
+    .modal h2 { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; margin-bottom: 20px; color: var(--brown-deep); }
+    .modal label { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--charcoal-light); margin-bottom: 5px; }
+    .modal input, .modal textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--beige);
+      border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.88rem;
+      color: var(--charcoal); background: var(--cream-light); margin-bottom: 14px;
+      transition: border-color 0.2s; outline: none;
+    }
+    .modal input:focus, .modal textarea:focus { border-color: var(--blue-soft); }
+    .modal textarea { resize: vertical; min-height: 64px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+    /* ── ADMIN PANEL ──────────────────────────── */
+    .admin-fab {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 46px; height: 46px; border-radius: 8px;
+      background: var(--brown-deep); color: var(--cream);
+      border: none; cursor: pointer; box-shadow: var(--shadow-md);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 900; transition: transform 0.2s, background 0.2s;
+    }
+    .admin-fab:hover { transform: scale(1.06); background: var(--brown); }
+    .admin-fab svg { width: 20px; height: 20px; }
+    .admin-panel {
+      position: fixed; top: 0; right: -480px;
+      width: 100%; max-width: 440px; height: 100vh;
+      background: var(--white); box-shadow: -4px 0 32px rgba(58,50,44,0.12);
+      z-index: 950; transition: right 0.35s ease;
+      display: flex; flex-direction: column;
+    }
+    .admin-panel.open { right: 0; }
+    .admin-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--beige);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--cream-light);
+    }
+    .admin-header h2 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; color: var(--brown-deep); }
+    .admin-close { background: none; border: none; cursor: pointer; color: var(--charcoal-light); padding: 4px; }
+    .admin-close svg { width: 18px; height: 18px; }
+    .admin-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+    .admin-gift-item {
+      padding: 14px; border: 1.5px solid var(--beige);
+      border-radius: var(--radius-sm); margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--cream-light);
+    }
+    .admin-gift-thumb { width: 50px; height: 50px; border-radius: 6px; overflow: hidden; background: var(--cream); flex-shrink: 0; }
+    .admin-gift-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .admin-gift-info { flex: 1; min-width: 0; }
+    .admin-gift-info h4 { font-size: 0.85rem; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--brown-deep); }
+    .admin-gift-info p { font-size: 0.72rem; color: var(--charcoal-light); margin-bottom: 3px; }
+    .admin-gift-info .reserved-by { font-size: 0.7rem; color: var(--blue-accent); font-weight: 500; }
+    .admin-gift-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: flex-start; }
+    .admin-footer { padding: 14px 24px; border-top: 1px solid var(--beige); background: var(--cream-light); }
+
+    /* ── MISC ──────────────────────────────────── */
+    .loading { text-align: center; padding: 80px 24px; }
+    .loading-spinner { width: 32px; height: 32px; border: 2.5px solid var(--beige); border-top-color: var(--brown); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 14px; }
+    .loading p { font-size: 0.85rem; color: var(--charcoal-light); }
+    .config-banner { background: #FFF8E1; border-bottom: 1px solid #F0DCA0; color: #6D5A1E; padding: 14px 24px; text-align: center; font-size: 0.82rem; line-height: 1.6; }
+    .config-banner code { background: rgba(0,0,0,0.07); padding: 2px 6px; border-radius: 3px; font-size: 0.78rem; }
+    .page-footer { text-align: center; padding: 28px 24px; font-size: 0.75rem; color: var(--charcoal-light); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.5; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; min-height: auto; }
+      .hero-text { padding: 40px 24px 32px; text-align: center; }
+      .hero-text .welcome-msg { margin: 0 auto; }
+      .hero-text .hero-divider { margin: 0 auto 20px; }
+      .hero-photo { min-height: 300px; order: -1; }
+      .hero-photo::after { background: linear-gradient(to top, var(--beige) 0%, transparent 30%); }
+      .hero-label { margin-bottom: 14px; }
+    }
+    @media (max-width: 640px) {
+      .gifts-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .gift-body { padding: 12px 14px 16px; }
+      .gift-name { font-size: 0.95rem; }
+      .gift-desc { font-size: 0.75rem; margin-bottom: 10px; }
+      .gift-footer { flex-direction: column; align-items: stretch; }
+      .gift-footer .btn { text-align: center; }
+      .admin-panel { max-width: 100%; }
+      .modal { padding: 24px; }
+      .section-header { padding: 36px 24px 24px; }
+      .section-header h2 { font-size: 1.3rem; }
+    }
+    @media (max-width: 400px) {
+      .gifts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="config-banner" id="configBanner" style="display:none;">
+    ⚠️ Firebase no está configurado. Abre <code>index.html</code> y reemplaza el bloque <code>firebaseConfig</code>. Revisa <code>INSTRUCCIONES.md</code>.
+  </div>
+
+  <!-- ═══════ HERO ═══════ -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <span class="hero-label">Lista de Regalos</span>
+        <h1>Bienvenidos al<br>Baby Shower de <em>Matías</em></h1>
+        <div class="hero-divider"></div>
+        <p class="welcome-msg">
+          Estamos muy felices de compartir esta etapa con ustedes.
+          Aquí encontrarán algunas ideas de regalos para darle la bienvenida a nuestro pequeño.
+          ¡Gracias por ser parte de este momento tan especial!
+        </p>
+      </div>
+      <div class="hero-photo">
+        <!-- Sube "revelacion.jpg" junto con este archivo al repositorio -->
+        <img src="revelacion.jpg" alt="Revelación de género de Matías" />
+      </div>
+    </div>
+  </header>
+
+  <div class="section-header">
+    <h2>Regalos para Matías</h2>
+    <p>Elige un regalo y apártalo con tu nombre</p>
+    <div class="line"></div>
+  </div>
+
+  <!-- ═══════ GIFT GRID ═══════ -->
+  <main class="gifts-section">
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>Cargando regalos...</p>
+    </div>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+      <p>Aún no hay regalos en la lista.</p>
+    </div>
+    <div id="giftsGrid" class="gifts-grid"></div>
+  </main>
+
+  <footer class="page-footer">Con amor para Matías ♡</footer>
+
+  <!-- ═══════ ADMIN FAB ═══════ -->
+  <button class="admin-fab" id="adminFab" title="Admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15.5A3.5 3.5 0 0 0 15.5 12 3.5 3.5 0 0 0 12 8.5 3.5 3.5 0 0 0 8.5 12 3.5 3.5 0 0 0 12 15.5Z"/><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58Z"/></svg>
+  </button>
+
+  <!-- ═══════ ADMIN PANEL ═══════ -->
+  <aside class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <h2>Panel de Admin</h2>
+      <button class="admin-close" id="adminClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="admin-body" id="adminBody">
+      <p style="font-size:0.82rem;color:var(--charcoal-light);margin-bottom:14px;">Administra los regalos. Los familiares solo ven la vista pública.</p>
+      <div id="adminGiftList"></div>
+    </div>
+    <div class="admin-footer">
+      <button class="btn btn-warm" style="width:100%;" id="addGiftBtn">+ Agregar regalo</button>
+    </div>
+  </aside>
+
+  <!-- ═══════ MODALS ═══════ -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal">
+      <h2>Acceso de Administrador</h2>
+      <label for="adminPass">Contraseña</label>
+      <input type="password" id="adminPass" placeholder="Ingresa la contraseña" />
+      <p id="loginError" style="color:var(--red-soft);font-size:0.78rem;margin-bottom:10px;display:none;">Contraseña incorrecta</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="loginCancel">Cancelar</button>
+        <button class="btn btn-warm" id="loginSubmit">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="giftModal">
+    <div class="modal">
+      <h2 id="giftModalTitle">Agregar regalo</h2>
+      <input type="hidden" id="giftEditId" />
+      <label for="giftName">Nombre del regalo *</label>
+      <input type="text" id="giftName" placeholder="Ej: Coche para bebé" />
+      <label for="giftDesc">Descripción</label>
+      <textarea id="giftDesc" placeholder="Ej: Color gris, modelo X..."></textarea>
+      <label for="giftImage">URL de la imagen</label>
+      <input type="text" id="giftImage" placeholder="https://..." />
+      <label for="giftLink">Link del producto</label>
+      <input type="text" id="giftLink" placeholder="https://..." />
+      <label for="giftPrice">Precio (opcional)</label>
+      <input type="text" id="giftPrice" placeholder="Ej: $150.000 COP" />
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="giftCancel">Cancelar</button>
+        <button class="btn btn-warm" id="giftSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reserveModal">
+    <div class="modal">
+      <h2>Apartar regalo</h2>
+      <p style="font-size:0.85rem;color:var(--charcoal-light);margin-bottom:18px;">Ingresa tu nombre para apartar este regalo.</p>
+      <input type="hidden" id="reserveGiftId" />
+      <label for="reserveName">Tu nombre</label>
+      <input type="text" id="reserveName" placeholder="Ej: Tía María" />
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="reserveCancel">Cancelar</button>
+        <button class="btn btn-primary" id="reserveSubmit">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">🎉</div>
+      <h2 style="margin-bottom:10px;">¡Listo!</h2>
+      <p style="font-size:0.9rem;color:var(--charcoal-light);margin-bottom:20px;" id="confirmMsg">Has apartado este regalo. ¡Gracias!</p>
+      <button class="btn btn-warm" id="confirmClose">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+  /* ╔══════════════════════════════════════════════╗
+     ║  🔧  CONFIGURACIÓN                          ║
+     ║  1. Reemplaza firebaseConfig con tus datos   ║
+     ║  2. Cambia ADMIN_PASSWORD                    ║
+     ╚══════════════════════════════════════════════╝ */
+
+  const ADMIN_PASSWORD = "matias2026";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCZ-LD5Zk9ccankMebKUTVeqMPjXVeblOM",
+    authDomain: "baby-shower-matias-4487c.firebaseapp.com",
+    databaseURL: "https://baby-shower-matias-4487c-default-rtdb.firebaseio.com",
+    projectId: "baby-shower-matias-4487c",
+    storageBucket: "baby-shower-matias-4487c.firebasestorage.app",
+    messagingSenderId: "189831412092",
+    appId: "1:189831412092:web:fbf48c4151f1b4ac770cf9"
+  };
+
+  /* ═════ NO EDITAR DEBAJO ═════ */
+
+  let db, giftsRef, isAdmin = false, allGifts = {};
+
+  function initFirebase() {
+    if (firebaseConfig.apiKey === "TU_API_KEY") {
+      document.getElementById('configBanner').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+      return false;
+    }
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      giftsRef = db.ref('gifts');
+      return true;
+    } catch (e) {
+      console.error('Error Firebase:', e);
+      document.getElementById('configBanner').style.display = 'none';
+      document.getElementById('loading').style.display = 'none';
+      return false;
+    }
+  }
+
+  function renderGifts(gifts) {
+    const grid = document.getElementById('giftsGrid');
+    const loading = document.getElementById('loading');
+    const empty = document.getElementById('emptyState');
+    loading.style.display = 'none';
+    allGifts = gifts || {};
+    const entries = Object.entries(allGifts);
+    if (entries.length === 0) { empty.style.display = 'block'; grid.innerHTML = ''; renderAdminList(); return; }
+    empty.style.display = 'none';
+
+    grid.innerHTML = entries.map(([id, g], i) => {
+      const reserved = g.reserved || false;
+      const imgHtml = g.image
+        ? `<img src="${esc(g.image)}" alt="${esc(g.name)}" loading="lazy" onerror="this.parentElement.innerHTML=placeholderSvg" />`
+        : `<div class="gift-img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+      const btnHtml = reserved
+        ? `<span class="status-badge status-reserved">Apartado</span>`
+        : `<button class="btn btn-primary btn-sm" onclick="openReserveModal('${id}')">Apartar</button>`;
+      const linkHtml = g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Ver producto</a>` : '';
+
+      return `<div class="gift-card ${reserved?'reserved':''}" style="animation-delay:${i*0.06}s">
+        <div class="gift-img-wrap">${imgHtml}</div>
+        <div class="gift-body">
+          <h3 class="gift-name">${esc(g.name)}</h3>
+          ${g.description?`<p class="gift-desc">${esc(g.description)}</p>`:''}
+          ${g.price?`<p class="gift-price">${esc(g.price)}</p>`:''}
+          <div class="gift-footer">${btnHtml}${linkHtml}</div>
+        </div></div>`;
+    }).join('');
+    renderAdminList();
+  }
+
+  function renderAdminList() {
+    if (!isAdmin) return;
+    const list = document.getElementById('adminGiftList');
+    const entries = Object.entries(allGifts);
+    if (entries.length === 0) { list.innerHTML = '<p style="text-align:center;color:var(--charcoal-light);font-size:0.82rem;padding:24px;">No hay regalos aún.</p>'; return; }
+
+    list.innerHTML = entries.map(([id, g]) => {
+      const thumb = g.image ? `<img src="${esc(g.image)}" alt="" />` : '';
+      const resInfo = g.reserved && g.reservedBy ? `<span class="reserved-by">Apartado por: ${esc(g.reservedBy)}</span>` : (g.reserved ? '<span class="reserved-by">Apartado</span>' : '');
+      const toggleBtn = g.reserved
+        ? `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',false)" title="Liberar">✓</button>`
+        : `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',true)" title="Apartar" style="opacity:0.35;">○</button>`;
+      return `<div class="admin-gift-item">
+        <div class="admin-gift-thumb">${thumb}</div>
+        <div class="admin-gift-info"><h4>${esc(g.name)}</h4>${g.price?`<p>${esc(g.price)}</p>`:''}${resInfo}</div>
+        <div class="admin-gift-actions">${toggleBtn}<button class="btn btn-sm btn-outline" onclick="editGift('${id}')" title="Editar">✎</button><button class="btn btn-sm btn-danger" onclick="deleteGift('${id}')" title="Eliminar">✕</button></div></div>`;
+    }).join('');
+  }
+
+  function openReserveModal(id) {
+    document.getElementById('reserveGiftId').value = id;
+    document.getElementById('reserveName').value = '';
+    document.getElementById('reserveName').style.borderColor = '';
+    openModal('reserveModal');
+    setTimeout(() => document.getElementById('reserveName').focus(), 300);
+  }
+  function confirmReserve() {
+    const id = document.getElementById('reserveGiftId').value;
+    const name = document.getElementById('reserveName').value.trim();
+    if (!name) { document.getElementById('reserveName').style.borderColor = 'var(--red-soft)'; return; }
+    giftsRef.child(id).update({ reserved: true, reservedBy: name });
+    closeModal('reserveModal');
+    const gn = allGifts[id] ? allGifts[id].name : 'el regalo';
+    document.getElementById('confirmMsg').textContent = `Has apartado "${gn}". ¡Gracias por tu generosidad, ${name}!`;
+    openModal('confirmModal');
+  }
+  function toggleReserve(id, val) {
+    if (!isAdmin) return;
+    giftsRef.child(id).update(val ? { reserved: true, reservedBy: 'Admin' } : { reserved: false, reservedBy: null });
+  }
+  function openAddGift() {
+    document.getElementById('giftModalTitle').textContent = 'Agregar regalo';
+    document.getElementById('giftEditId').value = '';
+    ['giftName','giftDesc','giftImage','giftLink','giftPrice'].forEach(x => { document.getElementById(x).value = ''; document.getElementById(x).style.borderColor = ''; });
+    openModal('giftModal');
+    setTimeout(() => document.getElementById('giftName').focus(), 300);
+  }
+  function editGift(id) {
+    if (!isAdmin) return;
+    const g = allGifts[id]; if (!g) return;
+    document.getElementById('giftModalTitle').textContent = 'Editar regalo';
+    document.getElementById('giftEditId').value = id;
+    document.getElementById('giftName').value = g.name || '';
+    document.getElementById('giftDesc').value = g.description || '';
+    document.getElementById('giftImage').value = g.image || '';
+    document.getElementById('giftLink').value = g.link || '';
+    document.getElementById('giftPrice').value = g.price || '';
+    openModal('giftModal');
+  }
+  function saveGift() {
+    const name = document.getElementById('giftName').value.trim();
+    if (!name) { document.getElementById('giftName').style.borderColor = 'var(--red-soft)'; return; }
+    const data = { name, description: document.getElementById('giftDesc').value.trim(), image: document.getElementById('giftImage').value.trim(), link: document.getElementById('giftLink').value.trim(), price: document.getElementById('giftPrice').value.trim(), reserved: false, reservedBy: null };
+    const editId = document.getElementById('giftEditId').value;
+    if (editId) { const ex = allGifts[editId]; if (ex) { data.reserved = ex.reserved||false; data.reservedBy = ex.reservedBy||null; } giftsRef.child(editId).set(data); }
+    else { giftsRef.push(data); }
+    closeModal('giftModal');
+  }
+  function deleteGift(id) { if (!isAdmin) return; if (confirm('¿Eliminar este regalo?')) giftsRef.child(id).remove(); }
+
+  function attemptLogin() {
+    const pass = document.getElementById('adminPass').value;
+    if (pass === ADMIN_PASSWORD) { isAdmin = true; closeModal('loginModal'); document.getElementById('adminPanel').classList.add('open'); renderAdminList(); }
+    else { document.getElementById('loginError').style.display = 'block'; document.getElementById('adminPass').style.borderColor = 'var(--red-soft)'; }
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+  function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  const placeholderSvg = '<div class="gift-img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>';
+
+  // Events
+  document.getElementById('adminFab').addEventListener('click', () => {
+    if (isAdmin) { document.getElementById('adminPanel').classList.toggle('open'); }
+    else { document.getElementById('adminPass').value = ''; document.getElementById('loginError').style.display = 'none'; document.getElementById('adminPass').style.borderColor = ''; openModal('loginModal'); setTimeout(() => document.getElementById('adminPass').focus(), 300); }
+  });
+  document.getElementById('adminClose').addEventListener('click', () => document.getElementById('adminPanel').classList.remove('open'));
+  document.getElementById('loginCancel').addEventListener('click', () => closeModal('loginModal'));
+  document.getElementById('loginSubmit').addEventListener('click', attemptLogin);
+  document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key==='Enter') attemptLogin(); });
+  document.getElementById('addGiftBtn').addEventListener('click', openAddGift);
+  document.getElementById('giftCancel').addEventListener('click', () => closeModal('giftModal'));
+  document.getElementById('giftSave').addEventListener('click', saveGift);
+  document.getElementById('reserveCancel').addEventListener('click', () => closeModal('reserveModal'));
+  document.getElementById('reserveSubmit').addEventListener('click', confirmReserve);
+  document.getElementById('reserveName').addEventListener('keydown', e => { if (e.key==='Enter') confirmReserve(); });
+  document.getElementById('confirmClose').addEventListener('click', () => closeModal('confirmModal'));
+  document.querySelectorAll('.modal-overlay').forEach(el => { el.addEventListener('click', e => { if (e.target===el) closeModal(el.id); }); });
+
+  // Init
+  if (initFirebase()) { giftsRef.on('value', snap => renderGifts(snap.val())); }
+  </script>
+</body>
+</html>

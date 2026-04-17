@@ -61,12 +61,13 @@
       max-width: 1100px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.1fr 0.9fr;
       align-items: center;
-      min-height: 520px;
+      min-height: 420px;
+      padding: 40px 40px;
+      gap: 40px;
     }
     .hero-text {
-      padding: 60px 48px 60px 40px;
       position: relative;
       z-index: 2;
     }
@@ -106,21 +107,17 @@
 
     .hero-photo {
       position: relative;
-      height: 100%;
-      min-height: 400px;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      aspect-ratio: 3/4;
+      max-height: 380px;
+      justify-self: center;
     }
     .hero-photo img {
       width: 100%; height: 100%;
       object-fit: cover;
       object-position: center 20%;
-    }
-    .hero-photo::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to right, var(--beige) 0%, transparent 25%);
-      pointer-events: none;
     }
 
     /* ── SECTION HEADER ─────────────────────── */
@@ -304,12 +301,11 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 768px) {
-      .hero-inner { grid-template-columns: 1fr; min-height: auto; }
-      .hero-text { padding: 40px 24px 32px; text-align: center; }
+      .hero-inner { grid-template-columns: 1fr; min-height: auto; padding: 32px 24px; gap: 24px; }
+      .hero-text { text-align: center; }
       .hero-text .welcome-msg { margin: 0 auto; }
       .hero-text .hero-divider { margin: 0 auto 20px; }
-      .hero-photo { min-height: 300px; order: -1; }
-      .hero-photo::after { background: linear-gradient(to top, var(--beige) 0%, transparent 30%); }
+      .hero-photo { order: -1; max-height: 300px; width: 70%; aspect-ratio: 3/4; }
       .hero-label { margin-bottom: 14px; }
     }
     @media (max-width: 640px) {
@@ -359,6 +355,9 @@
     <h2>Regalos para Matías</h2>
     <p>Elige un regalo y apártalo con tu nombre</p>
     <div class="line"></div>
+    <p style="margin-top:16px;font-size:0.82rem;color:var(--brown-warm);font-style:italic;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;">
+      * Todos los regalos son solo de referencia. No es obligatorio comprar exactamente estos productos, son solo ideas y sugerencias para guiarse.
+    </p>
   </div>
 
   <!-- ═══════ GIFT GRID ═══════ -->
@@ -422,8 +421,6 @@
       <input type="text" id="giftImage" placeholder="https://..." />
       <label for="giftLink">Link del producto</label>
       <input type="text" id="giftLink" placeholder="https://..." />
-      <label for="giftPrice">Precio (opcional)</label>
-      <input type="text" id="giftPrice" placeholder="Ej: $150.000 COP" />
       <div class="modal-actions">
         <button class="btn btn-outline" id="giftCancel">Cancelar</button>
         <button class="btn btn-warm" id="giftSave">Guardar</button>
@@ -522,7 +519,6 @@
         <div class="gift-body">
           <h3 class="gift-name">${esc(g.name)}</h3>
           ${g.description?`<p class="gift-desc">${esc(g.description)}</p>`:''}
-          ${g.price?`<p class="gift-price">${esc(g.price)}</p>`:''}
           <div class="gift-footer">${btnHtml}${linkHtml}</div>
         </div></div>`;
     }).join('');
@@ -543,7 +539,7 @@
         : `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',true)" title="Apartar" style="opacity:0.35;">○</button>`;
       return `<div class="admin-gift-item">
         <div class="admin-gift-thumb">${thumb}</div>
-        <div class="admin-gift-info"><h4>${esc(g.name)}</h4>${g.price?`<p>${esc(g.price)}</p>`:''}${resInfo}</div>
+        <div class="admin-gift-info"><h4>${esc(g.name)}</h4>${resInfo}</div>
         <div class="admin-gift-actions">${toggleBtn}<button class="btn btn-sm btn-outline" onclick="editGift('${id}')" title="Editar">✎</button><button class="btn btn-sm btn-danger" onclick="deleteGift('${id}')" title="Eliminar">✕</button></div></div>`;
     }).join('');
   }
@@ -572,7 +568,7 @@
   function openAddGift() {
     document.getElementById('giftModalTitle').textContent = 'Agregar regalo';
     document.getElementById('giftEditId').value = '';
-    ['giftName','giftDesc','giftImage','giftLink','giftPrice'].forEach(x => { document.getElementById(x).value = ''; document.getElementById(x).style.borderColor = ''; });
+    ['giftName','giftDesc','giftImage','giftLink'].forEach(x => { document.getElementById(x).value = ''; document.getElementById(x).style.borderColor = ''; });
     openModal('giftModal');
     setTimeout(() => document.getElementById('giftName').focus(), 300);
   }
@@ -585,13 +581,12 @@
     document.getElementById('giftDesc').value = g.description || '';
     document.getElementById('giftImage').value = g.image || '';
     document.getElementById('giftLink').value = g.link || '';
-    document.getElementById('giftPrice').value = g.price || '';
     openModal('giftModal');
   }
   function saveGift() {
     const name = document.getElementById('giftName').value.trim();
     if (!name) { document.getElementById('giftName').style.borderColor = 'var(--red-soft)'; return; }
-    const data = { name, description: document.getElementById('giftDesc').value.trim(), image: document.getElementById('giftImage').value.trim(), link: document.getElementById('giftLink').value.trim(), price: document.getElementById('giftPrice').value.trim(), reserved: false, reservedBy: null };
+    const data = { name, description: document.getElementById('giftDesc').value.trim(), image: document.getElementById('giftImage').value.trim(), link: document.getElementById('giftLink').value.trim(), reserved: false, reservedBy: null };
     const editId = document.getElementById('giftEditId').value;
     if (editId) { const ex = allGifts[editId]; if (ex) { data.reserved = ex.reserved||false; data.reservedBy = ex.reservedBy||null; } giftsRef.child(editId).set(data); }
     else { giftsRef.push(data); }

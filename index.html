@@ -356,7 +356,7 @@
     <p>Elige un regalo y apártalo con tu nombre</p>
     <div class="line"></div>
     <p style="margin-top:16px;font-size:0.82rem;color:var(--brown-warm);font-style:italic;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;">
-      ✨ Las imágenes y links que dejamos aquí son para darles una idea de los colores y estilos que nos gustan. Si quieren comprar el de la foto está perfecto, pero siéntanse libres de buscar otras opciones similares. ¡Cualquier detalle lo recibiremos con mucho amor!
+      * Todos los regalos son solo de referencia. No es obligatorio comprar exactamente estos productos, son solo ideas y sugerencias para guiarse.
     </p>
   </div>
 
@@ -421,6 +421,13 @@
       <input type="text" id="giftImage" placeholder="https://..." />
       <label for="giftLink">Link del producto</label>
       <input type="text" id="giftLink" placeholder="https://..." />
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;margin-top:4px;">
+        <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:0.85rem;font-weight:400;color:var(--charcoal);">
+          <input type="checkbox" id="giftReservable" checked style="width:18px;height:18px;accent-color:var(--blue-accent);cursor:pointer;" />
+          Permitir que lo aparten
+        </label>
+      </div>
+      <p style="font-size:0.72rem;color:var(--charcoal-light);margin-bottom:14px;margin-top:-8px;">Si lo desactivas, el regalo se mostrará sin botón de apartar (ideal para ropa, juguetes, etc.)</p>
       <div class="modal-actions">
         <button class="btn btn-outline" id="giftCancel">Cancelar</button>
         <button class="btn btn-warm" id="giftSave">Guardar</button>
@@ -506,12 +513,18 @@
 
     grid.innerHTML = entries.map(([id, g], i) => {
       const reserved = g.reserved || false;
+      const reservable = g.reservable !== false; // default true for backward compat
       const imgHtml = g.image
         ? `<img src="${esc(g.image)}" alt="${esc(g.name)}" loading="lazy" onerror="this.parentElement.innerHTML=placeholderSvg" />`
         : `<div class="gift-img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
-      const btnHtml = reserved
-        ? `<span class="status-badge status-reserved">Apartado</span>`
-        : `<button class="btn btn-primary btn-sm" onclick="openReserveModal('${id}')">Apartar</button>`;
+      let btnHtml = '';
+      if (!reservable) {
+        btnHtml = '<span class="status-badge" style="background:#F0EDE6;color:var(--brown-warm);">Libre</span>';
+      } else if (reserved) {
+        btnHtml = '<span class="status-badge status-reserved">Apartado</span>';
+      } else {
+        btnHtml = `<button class="btn btn-primary btn-sm" onclick="openReserveModal('${id}')">Apartar</button>`;
+      }
       const linkHtml = g.link ? `<a href="${esc(g.link)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Ver producto</a>` : '';
 
       return `<div class="gift-card ${reserved?'reserved':''}" style="animation-delay:${i*0.06}s">
@@ -533,10 +546,15 @@
 
     list.innerHTML = entries.map(([id, g]) => {
       const thumb = g.image ? `<img src="${esc(g.image)}" alt="" />` : '';
-      const resInfo = g.reserved && g.reservedBy ? `<span class="reserved-by">Apartado por: ${esc(g.reservedBy)}</span>` : (g.reserved ? '<span class="reserved-by">Apartado</span>' : '');
-      const toggleBtn = g.reserved
-        ? `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',false)" title="Liberar">✓</button>`
-        : `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',true)" title="Apartar" style="opacity:0.35;">○</button>`;
+      const reservable = g.reservable !== false;
+      const resInfo = !reservable
+        ? '<span class="reserved-by" style="color:var(--brown-warm);">Sin apartado</span>'
+        : (g.reserved && g.reservedBy ? `<span class="reserved-by">Apartado por: ${esc(g.reservedBy)}</span>` : (g.reserved ? '<span class="reserved-by">Apartado</span>' : ''));
+      const toggleBtn = !reservable
+        ? ''
+        : (g.reserved
+          ? `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',false)" title="Liberar">✓</button>`
+          : `<button class="btn btn-sm btn-outline" onclick="toggleReserve('${id}',true)" title="Apartar" style="opacity:0.35;">○</button>`);
       return `<div class="admin-gift-item">
         <div class="admin-gift-thumb">${thumb}</div>
         <div class="admin-gift-info"><h4>${esc(g.name)}</h4>${resInfo}</div>
@@ -569,6 +587,7 @@
     document.getElementById('giftModalTitle').textContent = 'Agregar regalo';
     document.getElementById('giftEditId').value = '';
     ['giftName','giftDesc','giftImage','giftLink'].forEach(x => { document.getElementById(x).value = ''; document.getElementById(x).style.borderColor = ''; });
+    document.getElementById('giftReservable').checked = true;
     openModal('giftModal');
     setTimeout(() => document.getElementById('giftName').focus(), 300);
   }
@@ -581,14 +600,15 @@
     document.getElementById('giftDesc').value = g.description || '';
     document.getElementById('giftImage').value = g.image || '';
     document.getElementById('giftLink').value = g.link || '';
+    document.getElementById('giftReservable').checked = g.reservable !== false;
     openModal('giftModal');
   }
   function saveGift() {
     const name = document.getElementById('giftName').value.trim();
     if (!name) { document.getElementById('giftName').style.borderColor = 'var(--red-soft)'; return; }
-    const data = { name, description: document.getElementById('giftDesc').value.trim(), image: document.getElementById('giftImage').value.trim(), link: document.getElementById('giftLink').value.trim(), reserved: false, reservedBy: null };
+    const data = { name, description: document.getElementById('giftDesc').value.trim(), image: document.getElementById('giftImage').value.trim(), link: document.getElementById('giftLink').value.trim(), reservable: document.getElementById('giftReservable').checked, reserved: false, reservedBy: null };
     const editId = document.getElementById('giftEditId').value;
-    if (editId) { const ex = allGifts[editId]; if (ex) { data.reserved = ex.reserved||false; data.reservedBy = ex.reservedBy||null; } giftsRef.child(editId).set(data); }
+    if (editId) { const ex = allGifts[editId]; if (ex) { if (data.reservable) { data.reserved = ex.reserved||false; data.reservedBy = ex.reservedBy||null; } else { data.reserved = false; data.reservedBy = null; } } giftsRef.child(editId).set(data); }
     else { giftsRef.push(data); }
     closeModal('giftModal');
   }
